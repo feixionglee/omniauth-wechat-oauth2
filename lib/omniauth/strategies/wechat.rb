@@ -36,7 +36,7 @@ module OmniAuth
       end
 
       def request_phase
-        params = client.auth_code.authorize_params.merge(redirect_uri: callback_url).merge(scope: "snsapi_userinfo")
+        params = client.auth_code.authorize_params.merge(redirect_uri: callback_url).merge(authorize_params)
         params["appid"] = params.delete("client_id")
         redirect client.authorize_url(params)
       end
@@ -45,12 +45,8 @@ module OmniAuth
         @uid ||= access_token["openid"]
         @raw_info ||= begin
           access_token.options[:mode] = :query
-          if access_token["scope"] == "snsapi_userinfo"
-            response = access_token.get("/sns/userinfo", :params => {"openid" => @uid}, parse: :text)
-            @raw_info = JSON.parse(response.body.gsub(/[\u0000-\u001f]+/, ''))
-          else
-            @raw_info = {"openid" => @uid }
-          end
+          response = access_token.get("/sns/userinfo", :params => {"openid" => @uid}, parse: :text)
+          @raw_info = JSON.parse(response.body.gsub(/[\u0000-\u001f]+/, ''))
         end
       end
 
